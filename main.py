@@ -12,7 +12,7 @@ num_hidden = [0, 10, 50, 100, 500, 1000]
 
 
 def write_network_results(n):
-    with open("data/ACT" + n.params.activation + \
+    with open("results/ACT" + n.params.activation + \
               "-LR"+str(n.params.rate).replace('.', 'd') + \
               "-HID"+str(n.params.num_hidden) + \
               "-BAT"+str(n.params.batch_size) + \
