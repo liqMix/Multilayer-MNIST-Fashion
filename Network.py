@@ -25,9 +25,10 @@ class Network:
         self.accuracy = 0.0
         self.confMat = np.zeros((10, 10))
 
+    # Shuffle indexes to randomize train and test sets
     def assignIndex(self):
         idxs = list(range(len(self.dataset.data)))
-        #random.shuffle(idxs)
+        random.shuffle(idxs)
 
         self.trainIDX = idxs[:50000]
         self.testIDX = idxs[50000:]
@@ -88,6 +89,8 @@ class Network:
 
     # Feeds the inputs through the network
     def feed(self, inputs):
+
+        # Only use output layer if there are no hidden nodes
         if self.hidden is None:
             weights = self.output.weights * inputs
             sums = np.sum(weights, axis=1)
@@ -97,15 +100,15 @@ class Network:
         # Hidden Layer #
         weights = self.hidden.weights * inputs  # multiply each weight by its associated input
         sums = np.sum(weights, axis=1)  # sum the weighted input values
-        self.hidden.activation(sums, self.params.activation)  # sets the hidden activation array
-        # to activated values of summed weights
+        self.hidden.activation(sums, self.params.activation)  # sets the hidden activation array to activated values of summed weights
+
         # Output Layer #
         weights = self.output.weights * self.hidden.activated
         sums = np.sum(weights, axis=1)
         self.output.activation(sums, self.params.activation)
 
         return np.argmax(self.output.activated)  # returns the index of largest value weight,
-        # which is the predicted class of input
+                                                 # which is the predicted class of input
 
     # Updates the network's weights by calculating error and propogating
     # the error backwards through the network    
@@ -113,9 +116,11 @@ class Network:
         target_array = np.full(10, 0.1)  # initializes array of target
         target_array[target] = 0.9  # values to 0.1, sets goal to 0.9
 
+        # Only use output layer if there are no hidden nodes
         if self.hidden is None:
             self.output.calcError(target_array, self.params.activation)
-            self.output.update(features, self.params)
+            if((epoch_num % self.params.batch_size) is 0) and (epoch_num is not 0):
+                self.output.update(features, self.params)
             return
 
         self.output.calcError(target_array, self.params.activation)
