@@ -1,3 +1,8 @@
+# Brady Young
+# This file provides a container for network parameters, with defaults if not provided
+# parameters.
+
+
 class Params():
     def __init__(self, num_hidden=0, rate=1, momentum=1, num_epochs=30, batch_size=1, activation="sig"):
         self.num_hidden = num_hidden

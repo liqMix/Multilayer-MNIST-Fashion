@@ -1,8 +1,13 @@
+# Brady Young
+# This file contains the network construction out of lists of nodes. The parameters of the network
+# are passed to the constructor to customize the network, otherwise default parameters are used.
+
 import time
-from HyperParams import *
+import random
+from HyperParams import *   # Container for parameters to limit constants and arguments passed to network
 from Node import *
 
-## Controls the network functions and data ##
+# Controls the network functions and data
 class Network:
     def __init__(self, dataset, params=None):
         if params is None:
@@ -13,7 +18,7 @@ class Network:
         self.dataset = dataset
         self.trainIDX = None
         self.testIDX = None
-        self.assignIndex()
+        self.assign_index()
 
         if self.params.num_hidden is not 0:
             self.hidden = Hidden(self.params.num_hidden, 785)
@@ -26,31 +31,29 @@ class Network:
         self.confMat = np.zeros((10, 10))
 
     # Shuffle indexes to randomize train and test sets
-    def assignIndex(self):
+    def assign_index(self):
         idxs = list(range(len(self.dataset.data)))
         random.shuffle(idxs)
 
         self.trainIDX = idxs[:50000]
         self.testIDX = idxs[50000:]
 
-
     # Calls the training and testing functions
     # for each epoch and appends the results
     # to a list
-
     def run(self):
-        print("Starting network...")
         print(self.params)
+        print("Starting network...")
         start = time.clock()
 
         for i in range(self.params.num_epochs):
             self.train()
 
-        self.accuracy = "%.5f" % self.test()  # from training and testing
+        self.accuracy = self.test()  # from training and testing
 
         finish = time.clock() - start
-        print("\nFinished in", "%.2f" % finish, "seconds.")
-        print("Accuracy: ", self.accuracy)
+        print("Finished in", "%.2f" % finish, "seconds.")
+        print("Accuracy: ", self.accuracy[0] / self.accuracy[1], "\n")
 
     # Iterates through the training set:
     #   -Feeds the data through the network
@@ -85,7 +88,7 @@ class Network:
             self.confMat[target][result] += 1  # update the confusion matrix
             iterations += 1
 
-        return correct / iterations
+        return [correct, iterations]
 
     # Feeds the inputs through the network
     def feed(self, inputs):
@@ -119,14 +122,18 @@ class Network:
         # Only use output layer if there are no hidden nodes
         if self.hidden is None:
             self.output.calcError(target_array, self.params.activation)
+
+            # Only update weights after batch size is reached
             if((epoch_num % self.params.batch_size) is 0) and (epoch_num is not 0):
                 self.output.update(features, self.params)
             return
 
+        # Calculate the layer backwards from output through to hidden layer
         self.output.calcError(target_array, self.params.activation)
         self.hidden.calcError(self.output, self.params.activation)
 
+        # Only update weights after batch size is reached
         if((epoch_num % self.params.batch_size) is 0) and (epoch_num is not 0):
-            self.hidden.update(features, self.params)
             self.output.update(self.hidden, self.params)
+            self.hidden.update(features, self.params)
 
