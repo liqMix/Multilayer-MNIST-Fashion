@@ -1,1 +1,0 @@
-# CS410-MNIST-Fashion
